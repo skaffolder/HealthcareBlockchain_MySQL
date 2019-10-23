@@ -1,0 +1,215 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "overwrite": true,
+    "_partials": []
+}
+**** END PROPERTIES SKAFFOLDER ****
+openapi: 3.0.0
+info:
+  x-skaffolder-id-project: {{project._id}}
+  title: {{project.name}}
+  description: You can obtain JWT token from login API
+  version: 0.1
+servers:
+  - url: http://localhost:3000/api
+    description: Local server for testing
+paths:
+  /login:
+    post:
+      x-skaffolder-ignore: true
+      summary: Login API
+      security: []   # No security
+      tags:
+        - Security
+      requestBody:
+        content:
+          application/json:
+            schema:      # Request body contents
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              example:   # Sample object
+                username: admin
+                password: 62f264d7ad826f02a8af714c0a54b197935b717656b80461686d450f7b3abde4c553541515de2052b9af70f710f0cd8a1a2d3f4d60aa72608d71a63a9a93c0f5
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /verifyToken:
+    post:
+      x-skaffolder-ignore: true
+      summary: Verify token API
+      security: [] #No security
+      tags:
+        - Security
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /changePassword:
+    post:
+      x-skaffolder-ignore: true
+      summary: Change password API
+      tags:
+        - Security
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passwordNew:
+                  type: string
+                passwordOld:
+                  type: string
+      responses:
+        '200':
+          description: OK
+                
+{{#each resources}}{{#each _resources}}
+  #-----  {{name}}  -----{{#group _services by="url"}}
+  {{../url}}{{value}}:
+    {{#each items}}{{lowercase method}}:
+      x-skaffolder-id: {{_id}}
+      x-skaffolder-name: {{name}}
+      x-skaffolder-id-resource: {{./../../_id}}
+      x-skaffolder-resource: {{./../../name}}
+      x-skaffolder-crudAction: {{crudAction}}
+      x-skaffolder-crudType: {{crudType}}
+      x-skaffolder-description: {{description}}
+      x-skaffolder-returnDesc: {{returnDesc}}
+      x-skaffolder-returnType: {{returnType}}
+      x-skaffolder-url: {{url}}
+      x-skaffolder-roles: {{#notNull _roles}}{{#joinObj _roles 'name'}}{{/joinObj}}{{/notNull}}
+      summary: {{description}}
+      tags:
+        - {{../../name}}{{#notEmpty _params}}
+      parameters:{{#each _params}}
+        - name: {{name}}
+          x-skaffolder-type: {{type}}
+          in: path
+          description: {{description}}
+          required: true
+          schema:
+            type: {{toSwaggerType type}}{{/each}}{{/notEmpty}}
+      responses:
+        "200":
+          description: OK{{#or (equal crudAction 'list') (startWith crudAction 'findBy') (startWith crudAction 'addTo') (startWith crudAction 'removeFrom') (startWith crudAction 'linkTo') (startWith crudAction 'unlinkFrom')}}
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/{{../../name}}"{{/or}}{{#or (equal crudAction 'get') (equal crudAction 'update') (equal crudAction 'create') }}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/{{../../name}}"{{/or}}{{#or (equal crudAction 'update') }}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/{{../../name}}"{{/or}}{{#or (equal crudAction 'create') }}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:{{#each ../../_entity._attrs}}
+                {{name}}:
+                  type: {{toSwaggerType type}}{{/each}}{{/or}}
+    {{/each}}{{/group}}{{/each}}{{/each}}
+    
+# JWT security
+security:
+  - bearerAuth: [] 
+  
+  
+# Components
+components:
+
+  # Security
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+
+  # Data Model
+  schemas:
+        
+{{#each resources}}{{#each _resources}}
+    {{name}}:
+      x-skaffolder-id: {{_id}}
+      x-skaffolder-id-db: {{./../_id}}
+      x-skaffolder-id-entity: {{_entity._id}}
+      x-skaffolder-url: {{url}}
+      properties:
+        _id:
+          type: string
+          x-skaffolder-required: true{{#each _entity._attrs}}
+        {{name}}:
+          type: {{toSwaggerType type}}
+          x-skaffolder-id-attr: {{_id}}
+          x-skaffolder-type: {{type}}{{#if unique}}
+          x-skaffolder-unique: {{unique}}{{/if}}{{#if description}}
+          x-skaffolder-description: {{description}}{{/if}}{{#if required}}
+          x-skaffolder-required: {{required}}{{/if}}{{#if _enum}}
+          x-skaffolder-enumeration:{{#each _enum}}
+            - {{name}}{{/each}}{{/if}}{{/each}}
+      x-skaffolder-relations: {{#each _entity._relations}}{{#equal ../_entity._id _ent1._id}}
+        {{name}}:
+          x-skaffolder-type: {{type}}{{#if required}}
+          x-skaffolder-required: {{required}}{{/if}}
+          x-skaffolder-ent1: {{_ent1._id}}
+          x-skaffolder-ent2: {{_ent2._id}}{{/equal}}{{/each}}
+      required:
+        - _id{{#each _entity._attrs}}{{#equal required true}}
+        - {{name}}{{/equal}}{{/each}}
+      
+    {{/each}}{{/each}}
+    
+  # Databases
+  x-skaffolder-db:
+{{#each resources}}
+    - x-skaffolder-id: {{_id}}
+      x-skaffolder-name: {{name}}
+    {{/each}}
+
+  # Pages
+  x-skaffolder-page:
+{{#each modules}}
+    - x-skaffolder-id: {{_id}}
+      x-skaffolder-name: {{name}}
+      x-skaffolder-url: {{url}}
+      x-skaffolder-template: {{template}}
+      x-skaffolder-resource: {{_template_resource}}
+      x-skaffolder-services: {{#each _services}}
+        - {{_id}}{{/each}}
+      x-skaffolder-nesteds: {{#each _nesteds}}
+        - {{_id}}{{/each}}
+      x-skaffolder-links: {{#each _links}}
+        - {{_id}}{{/each}}{{#notNull _roles}}
+      x-skaffolder-roles: {{#each _roles}}
+        - {{name}}{{/each}}{{#equal _roles.length 0}}[]{{/equal}}{{/notNull}}
+    {{/each}}

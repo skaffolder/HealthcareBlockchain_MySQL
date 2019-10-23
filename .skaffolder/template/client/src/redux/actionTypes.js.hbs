@@ -1,0 +1,28 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "overwrite": false,
+    "_partials": [
+        {
+            "name": "Partial Constants",
+            "tagFrom": "// START CRUD CONSTANTS",
+            "tagTo": "// END CRUD CONSTANTS",
+            "template": "{{#each resources}}{{#each _resources}}\n// {{uppercase name COSTANTS}}\n{{#each _services}}\nexport const {{uppercase name}}_{{uppercase ../name}}_SUCCESS = \"{{uppercase name}}_{{uppercase ../name}}_SUCCESS\";\n{{/each}}{{/each}}{{/each}}"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+
+// INSERT HERE YOUR CUSTOM CONSTANTS
+
+
+
+
+// START CRUD CONSTANTS
+// END CRUD CONSTANTS
+
+// USER
+export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
+export const LOGOUT_SUCCESS = "LOGOUT_SUCCESS";
+export const CHANGE_PASSWORD_SUCCESS = "CHANGE_PASSWORD_SUCCESS";
+export const CHANGE_PASSWORD_ADMIN_SUCCESS = "CHANGE_PASSWORD_ADMIN_SUCCESS";

@@ -1,0 +1,103 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "module",
+    "overwrite": false,
+    "_partials": [
+        {
+            "name": "Partial Comment",
+            "tagFrom": "/** IMPORT MODULE DETAIL",
+            "tagTo": "END IMPORT MODULE DETAIL **/",
+            "template": "\n\n\tModule : \t{{module.name}}\n\t\n\tLinks : \t{{#each module._links}}{{name}}\n\t\t\t\t\t{{url}}\n.\t\t\t\t{{/each}}\n\t\n\tNesteds : \t{{#each module._nesteds}}{{name}}\n\t\t\t\t\t{{url}}\n.\t\t\t\t{{/each}}\n\t\t\t\t\n"
+        },
+        {
+            "name": "Partial import",
+            "tagFrom": "// START IMPORT ACTIONS",
+            "tagTo": "// END IMPORT ACTIONS",
+            "template": "{{#eachResource module._services}}{{#notEqual name 'User'}}import {{capitalize name }}Actions from \"../redux/actions/{{capitalize name}}Actions\";\n{{/notEqual}}{{/eachResource}}"
+        },
+        {
+            "template": "{{#notEmpty module._services}}{{#each module._services}}\n* actions{{capitalize _resource.name}}.{{name}}{{#notEmpty description}}\n*\t@description {{description}}{{/notEmpty}}{{#each _params}}\n*\t@param {{type}} {{name}}{{#notEmpty description}} - {{description}}{{/notEmpty}}{{/each}}{{#notEmpty returnType}}\n*\t@returns {{returnType}}{{/notEmpty}}\n*{{/each}}\n{{/notEmpty}}",
+            "tagTo": "**/",
+            "tagFrom": "/** APIs",
+            "name": "Partial used service"
+        },
+        {
+            "template": "{{#notEmpty module._resources}}/*{{#each module._resources}}\n * {{name}}Service{{/each}}\n */{{/notEmpty}}",
+            "tagTo": "// END - REQUIRED RESOURCES",
+            "tagFrom": "// START - REQUIRED RESOURCES",
+            "name": "Partial required resources"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+
+// Redux
+import PropTypes from "prop-types";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+
+// Custom Actions
+import UserActions from '../redux/actions/UserActions';
+
+// START IMPORT ACTIONS
+// END IMPORT ACTIONS
+
+/** APIs
+**/
+
+class {{capitalize module.name}} extends Component {
+  render() {
+    return (
+      <div>
+        {{#equal module.name 'Home'}}
+        <h2>Home</h2>
+
+        <h3>Sitemap</h3>
+        {{/equal}}
+        {{#notEqual module.name 'Home'}}
+        <h1>{{module.name}}</h1>
+        {{/notEqual}}
+                    
+        {{#each module._links}}
+        <div>
+          <Link to="{{url}}">Link to {{name}}</Link>
+        </div>
+        {{/each}}
+        
+        {{#each module._nesteds}}
+        <div>#import {{name}}</div>
+        <div ng-include="'./html/{{name}}.html'"> </div>
+        {{/each}}
+            
+      </div>
+    );
+  }
+}
+
+// Store actions
+const mapDispatchToProps = function(dispatch) {
+  return { 
+    actionsUser: bindActionCreators(UserActions, dispatch){{#eachResource module._services}}{{#notEqual name 'User'}},
+    actions{{capitalize name}}: bindActionCreators({{capitalize name}}Actions, dispatch){{/notEqual}}{{/eachResource}}
+  };
+};
+
+// Validate types
+{{capitalize module.name}}.propTypes = {
+  actionsUser: PropTypes.object.isRequired{{#eachResource module._services}}{{#notEqual name 'User'}},
+  actions{{capitalize name}}: PropTypes.object.isRequired{{/notEqual}}{{/eachResource}}
+};
+
+// Get props from state
+function mapStateToProps(state, ownProps) {
+  return {
+    user: state.LoginReducer.user
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)({{capitalize module.name}});

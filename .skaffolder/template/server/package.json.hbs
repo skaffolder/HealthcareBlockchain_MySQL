@@ -1,0 +1,45 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "overwrite": false,
+    "_partials": []
+}
+**** END PROPERTIES SKAFFOLDER ****
+{
+  "name": "{{toFileName project.name}}",
+  "version": "1.0.0",
+  "private": true,
+  "description": "{{project.name}} generated with Skaffolder    www.skaffolder.com  ",
+  "scripts": {
+    "build": "nodemon index.js",
+    "start": "nodemon index.js",
+    "debug": "nodemon --debug-brk index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "canonical-json": "^0.0.4",
+    "chalk": "^2.4.2",
+    "cors": "^2.8.5",
+    "esm": "^3.2.22",
+    "express": "^4.16.4",
+    "express-jwt": "^5.3.1",
+    "extend": "^3.0.1",
+    "factom-harmony-connect": "^1.1.0",
+    "helmet": "^3.16.0",
+    "jsonwebtoken": "^7.4.3",
+    "mysql2": "^1.6.5",
+    "nodemon": "^1.11.0",
+    "pg": "^7.11.0",
+    "sequelize": "^5.8.6",
+    "sha256": "^0.2.0",
+    "swagger-ui-express": "^2.0.15",
+    "tracer": "^0.8.9",
+    "uuid": "^3.3.2",
+    "winston": "^3.2.1",
+    "yamljs": "^0.3.0"
+  },
+  "repository": {}
+}

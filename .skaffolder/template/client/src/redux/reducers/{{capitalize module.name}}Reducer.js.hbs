@@ -1,0 +1,35 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "module",
+    "overwrite": false,
+    "_partials": [
+        {
+            "template": "{{#each module._services}}\n    case types.{{uppercase name}}_{{uppercase _resource.name}}_SUCCESS:\n      return { ...state, {{getReducerName .}}: action.payload };\n      {{/each}}\n    ",
+            "tagTo": "// END REDUCERS",
+            "tagFrom": "// START REDUCERS",
+            "name": "Partial reducers"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+// Dependencies
+import * as types from "../actionTypes";
+
+// Init
+const initialState = {
+};
+
+// Reducer
+export default function {{module.name}}Reducer(state = initialState, action) {
+  switch (action.type) {
+    
+    // Insert here your custom reducers
+
+
+    // START REDUCERS
+    // END REDUCERS
+    
+    default:
+      return state;
+  }
+}

@@ -1,0 +1,101 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "db",
+    "overwrite": true,
+    "_partials": []
+}
+**** END PROPERTIES SKAFFOLDER ****
+--
+-- Database: {{lowercase db.name}}
+--
+
+CREATE DATABASE {{lowercase db.name}};
+
+-- FACTOM BLOCKACHAIN ENTITIES
+
+--
+-- Table `identity`
+--
+
+CREATE TABLE IF NOT EXISTS "identity" (
+	"chain_id" varchar(260)  NOT NULL,
+	"entry_hash" varchar(260)  NOT NULL,
+	"key_pairs" json,
+	"_id" serial NOT NULL PRIMARY KEY
+);
+
+--
+-- Table `chain`
+--
+
+CREATE TABLE IF NOT EXISTS "chain" (
+	"chain_id" varchar(260)  NOT NULL,
+	"entry_hash" varchar(260)  NOT NULL,
+	"identity" int  REFERENCES identity(_id),
+	"_id" serial NOT NULL PRIMARY KEY,
+	"content" varchar(260)  NOT NULL
+
+);
+
+--
+-- Table `entry`
+--
+
+CREATE TABLE IF NOT EXISTS entry (
+	"entry_hash" varchar(260)  NOT NULL,
+	"content" varchar(260)  NOT NULL,
+
+	-- RELAZIONI
+	"chain" int  REFERENCES chain(_id),
+
+	"_id" serial NOT NULL PRIMARY KEY
+
+);
+
+-- ENTITIES
+
+{{#db._entity}}
+--
+-- Schema entity {{lowercase name}}
+--
+
+CREATE TABLE IF NOT EXISTS "{{lowercase name}}" ({{#_attrs}}
+	"{{name}}" {{resolveSQLtype type}} {{#required}} NOT NULL{{/required}}{{#unique}} UNIQUE{{/unique}},{{/_attrs}}
+	
+	"_id" SERIAL PRIMARY KEY
+
+);
+
+{{#equal (lowercase name) 'user'}}
+
+-- Security
+
+INSERT INTO "user" (username, password, _id) VALUES ('admin', '62f264d7ad826f02a8af714c0a54b197935b717656b80461686d450f7b3abde4c553541515de2052b9af70f710f0cd8a1a2d3f4d60aa72608d71a63a9a93c0f5', 1);
+
+CREATE TABLE IF NOT EXISTS "roles" (
+	"role" varchar(30) ,
+	
+	-- RELAZIONI
+
+	"_user" INTEGER  NOT NULL REFERENCES "user"(_id),
+	"_id" SERIAL PRIMARY KEY 
+
+);
+INSERT INTO "roles" (role, _user, _id) VALUES ('ADMIN', '1', 1);
+
+{{/equal}}{{/db._entity}}
+
+{{#db._entity}}{{#_relations}}{{#notNull ../extra.identity}}
+-- relation 1:m {{name}} {{_ent1.name}} - identity
+ALTER TABLE "{{lowercase ../name}}" ADD COLUMN "identity" INTEGER REFERENCES "identity"(_id);
+{{/notNull}}{{#equal _ent1.name ../name}}{{#equal type '1:m'}}
+-- relation 1:m {{name}} {{_ent1.name}} - {{_ent2.name}}
+ALTER TABLE "{{lowercase ../name}}" ADD COLUMN "{{name}}" INTEGER {{#required}} NOT NULL{{/required}} REFERENCES "{{lowercase _ent2.name}}"(_id);
+{{/equal}}{{/equal}}{{/_relations}}{{#each _relations}}{{#equal _ent1.name ../name}}{{#equal type 'm:m'}}
+-- relation m:m {{name}} {{_ent1.name}} - {{_ent2.name}}
+CREATE TABLE IF NOT EXISTS "{{_ent1.name}}_{{name}}" (
+    "_id" SERIAL PRIMARY KEY,
+    "id_{{_ent1.name}}" INTEGER  NOT NULL REFERENCES "{{lowercase _ent1.name}}"(_id),
+    "id_{{_ent2.name}}" INTEGER  NOT NULL REFERENCES "{{lowercase _ent2.name}}"(_id)
+);
+{{/equal}}{{/equal}}{{/each}}{{/db._entity}}

@@ -1,0 +1,68 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "overwrite": false,
+    "_partials": [
+        {
+            "template": "{{#each modules}}{{#notHome name}}\n              <{{#notNull _roles}}Private{{/notNull}}Route exact path=\"{{editUrlParam url}}\" component={ {{capitalize name}} } {{#notEmpty _roles}}roles={[ {{#each _roles}}'{{name}}',{{/each}} ]} {{/notEmpty}} />{{/notHome}}{{/each}}\n\n            ",
+            "tagTo": "{/* END MY VIEWS */}",
+            "tagFrom": "{/* START MY VIEWS */}",
+            "name": "Partial Routes"
+        },
+        {
+            "template": "\n{{#distinctModules modules}}{{#notHome name}}import {{capitalize name}} from \"./pages/{{capitalize name}}\";\n{{/notHome}}{{/distinctModules}}",
+            "name": "Partial import",
+            "tagFrom": "/* START MY VIEWS IMPORT */",
+            "tagTo": "/* END MY VIEWS IMPORT */"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+// Dependencies
+import React, { Component } from "react";
+import { Fragment } from "react";
+import { Route, Switch } from "react-router";
+import { PrivateRoute } from "./security/PrivateRoute";
+
+// Material UI
+import Paper from "@material-ui/core/Paper";
+
+/* START MY VIEWS IMPORT */
+/* END MY VIEWS IMPORT */
+
+// CUSTOM VIEWS
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Profile from "./pages/Profile";
+import UserEdit from "./pages/UserEdit";
+import UserList from "./pages/UserList";
+
+class Routes extends Component {
+  render() {
+    return (
+      <Switch>
+        <Fragment>
+          <Paper>
+            <div className="main-cointainer">
+              <Route exact path="/login" component={Login} />
+              <PrivateRoute exact path="/" component={Home} />
+              <PrivateRoute exact path="/profile" component={Profile} />
+              <PrivateRoute exact path="/users/:id" component={UserEdit} roles={["ADMIN"]}/>
+              <PrivateRoute exact path="/users" component={UserList} roles={["ADMIN"]}/>
+              
+              {/* CUSTOM VIEWS */}
+
+              <PrivateRoute exact path="/home" component={Home} />
+
+              {/* START MY VIEWS */}
+              {/* END MY VIEWS */}
+
+            </div>
+          </Paper>
+        </Fragment>
+      </Switch>
+    );
+  }
+}
+
+export default Routes;

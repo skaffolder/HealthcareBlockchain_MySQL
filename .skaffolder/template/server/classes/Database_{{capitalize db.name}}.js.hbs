@@ -1,0 +1,95 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "db",
+    "overwrite": false,
+    "_partials": [
+        {
+            "template": "\n{{#each db._resources}}import {{capitalize name}}Model from \"../models/{{capitalize ../db.name}}/{{capitalize name}}Model\";\n{{/each}} ",
+            "tagFrom": "// Start Import Models",
+            "tagTo": "// End Import Models",
+            "name": "Partial Import"
+        },
+        {
+            "template": "\n{{#each db._resources}}\n\t\t{{capitalize name}}Model.init();\n{{/each}}\t\t\t",
+            "tagFrom": "// Start Init Models",
+            "tagTo": "// End Init Models",
+            "name": "Partial Init"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+// Import Sequelize
+import Sequelize from "sequelize";
+import InitSchema from "../models/schema_{{db.name}}";
+import UserModel from "../models/{{capitalize db.name}}/UserModel";
+
+// Logging
+import Logger from "./Logger";
+// Properties
+import properties from "../properties.js";
+
+class Database {
+  constructor() {}
+
+  /**
+   * Init database
+   */
+  async init() {
+    await this.authenticate();
+    Logger.info(
+      "Database connected at: " +
+        properties.{{db.name}}.host +
+        ":" +
+        properties.{{db.name}}.port +
+        "//" +
+        properties.{{db.name}}.user +
+        "@" +
+        properties.{{db.name}}.name
+    );
+
+    // Import schema
+    InitSchema();
+
+    await UserModel.createAdminUser();
+
+  }
+
+  /**
+   * Start database connection
+   */
+  async authenticate() {
+    Logger.info("Authenticating to the databases...");
+
+    const sequelize = new Sequelize(
+      properties.{{db.name}}.name,
+      properties.{{db.name}}.user,
+      properties.{{db.name}}.password,
+      {
+        host: properties.{{db.name}}.host,
+        dialect: properties.{{db.name}}.dialect,
+        port: properties.{{db.name}}.port,
+        logging: false
+      }
+    );
+    this.dbConnection_{{db.name}} = sequelize;
+
+    try {
+      await sequelize.sync();
+    } catch (err) {
+      // Catch error here
+      Logger.error(`Failed connection to the DB`);
+      Logger.error(err);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      await this.authenticate();
+    }
+  }
+
+  /**
+   * Get connection db
+   */
+  getConnection() {
+    return this.dbConnection_{{db.name}};
+  }
+}
+
+export default new Database();

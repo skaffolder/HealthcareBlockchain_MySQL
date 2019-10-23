@@ -1,0 +1,29 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "resource",
+    "overwrite": false,
+    "_partials": []
+}
+**** END PROPERTIES SKAFFOLDER ****
+import {{capitalize resource.name}}ModelGenerated from "./generated/{{capitalize resource.name}}ModelGenerated";
+
+const customModel = {
+
+  /**
+   * Override here your custom queries
+   * EXAMPLE:
+   *
+   
+    async get(id) {
+      console.log("This is my custom query");
+      return await {{capitalize resource.name}}ModelGenerated.getModel().findOne({ _id: id });
+    }
+
+   */
+
+};
+
+export default {
+  ...{{capitalize resource.name}}ModelGenerated,
+  ...customModel
+};

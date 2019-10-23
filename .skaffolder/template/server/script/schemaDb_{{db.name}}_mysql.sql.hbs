@@ -1,0 +1,65 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "db",
+    "overwrite": true,
+    "_partials": []
+}
+**** END PROPERTIES SKAFFOLDER ****
+--
+-- Database: `{{lowercase db.name}}`
+--
+
+CREATE DATABASE IF NOT EXISTS `{{lowercase db.name}}`;
+USE `{{lowercase db.name}}`;
+
+
+-- ENTITIES
+
+{{#db._entity}}
+--
+-- Struttura della tabella `{{lowercase name}}`
+--
+
+CREATE TABLE IF NOT EXISTS `{{lowercase name}}` ({{#_attrs}}
+	`{{name}}` {{resolveSQLtype type}} {{#required}} NOT NULL{{/required}}{{#unique}} UNIQUE{{/unique}},{{/_attrs}}
+	
+	`_id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT 
+
+);
+
+{{#equal (lowercase name) 'user'}}
+
+-- Security
+
+ALTER TABLE `user` MODIFY COLUMN `password` varchar(128)  NOT NULL;
+
+INSERT INTO `{{lowercase ../db.name}}`.`user` (`username`, `password`, `_id`) VALUES ('admin', '62f264d7ad826f02a8af714c0a54b197935b717656b80461686d450f7b3abde4c553541515de2052b9af70f710f0cd8a1a2d3f4d60aa72608d71a63a9a93c0f5', 1);
+
+CREATE TABLE IF NOT EXISTS `roles` (
+	`role` varchar(30) ,
+	
+	-- RELAZIONI
+
+	`_user` int(11)  NOT NULL REFERENCES user(_id),
+	`_id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT 
+
+);
+INSERT INTO `{{lowercase ../db.name}}`.`roles` (`role`, `_user`, `_id`) VALUES ('ADMIN', '1', 1);
+
+{{/equal}}
+
+{{/db._entity}}
+
+
+{{#db._entity}}{{#_relations}}{{#equal _ent1.name ../name}}{{#equal type '1:m'}}
+-- relation 1:m {{name}} {{_ent1.name}} - {{_ent2.name}}
+ALTER TABLE `{{lowercase ../name}}` ADD COLUMN `{{name}}` int(11) {{#required}} NOT NULL{{/required}} REFERENCES {{lowercase _ent2.name}}(_id);
+{{/equal}}{{/equal}}{{/_relations}}{{#each _relations}}{{#equal _ent1.name ../name}}{{#equal type 'm:m'}}
+-- relation m:m {{name}} {{_ent1.name}} - {{_ent2.name}}
+CREATE TABLE IF NOT EXISTS `{{_ent1.name}}_{{name}}` (
+    `_id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `id_{{_ent1.name}}` int(11)  NOT NULL REFERENCES {{lowercase _ent1.name}}(_id),
+    `id_{{_ent2.name}}` int(11)  NOT NULL REFERENCES {{lowercase _ent2.name}}(_id)
+);
+{{/equal}}{{/equal}}{{/each}}{{/db._entity}}
+

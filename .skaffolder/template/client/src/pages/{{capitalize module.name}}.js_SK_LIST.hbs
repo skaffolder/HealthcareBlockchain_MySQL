@@ -1,0 +1,147 @@
+// Dependencies
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import DialogDelete from "../components/DialogDelete";
+
+// Redux
+import PropTypes from "prop-types";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+
+// Material UI
+import Button from "@material-ui/core/Button";
+// import Table from "@material-ui/core/Table";
+// import TableBody from "@material-ui/core/TableBody";
+// import TableCell from "@material-ui/core/TableCell";
+// import TableHead from "@material-ui/core/TableHead";
+// import TableRow from "@material-ui/core/TableRow";
+
+// Table
+import EnhancedTable from "../components/EnhancedTable";
+
+// Custom Actions
+
+
+// START IMPORT ACTIONS
+// END IMPORT ACTIONS
+
+/** APIs
+**/
+
+
+class {{capitalize crudResource.name}}List extends Component {
+  // Init component
+  constructor(props) {
+    super(props);
+    this.state = {
+      openDialogDelete: false
+    };
+  }
+
+  // Load data on start
+  componentWillMount() {
+    this.props.actions{{capitalize crudResource.name}}.load{{capitalize crudResource.name}}List();
+  }
+
+  // Delete data
+  delete(id) {
+    this.setState({ openDialogDelete: true, idDelete: id });
+  }
+
+  closeDialogDelete() {
+    this.setState({ openDialogDelete: false, idDelete: null });
+  }
+
+  confirmDialogDelete(id) {
+    this.props.actions{{capitalize crudResource.name}}.delete{{capitalize crudResource.name}}(this.state.idDelete).then(data => {
+      this.props.actions{{capitalize crudResource.name}}.load{{capitalize crudResource.name}}List();
+      this.setState({ openDialogDelete: false, idDelete: null });
+    });
+  }
+
+  // Show content
+  render() {
+    const columns = [{{#each crudResource._entity._attrs}} 
+      {
+        id: "{{name}}",
+        type: "{{lowercase type}}",
+        label: "{{capitalize name}}"
+      },{{/each}}
+    ];
+    const link = "{{linkUrl}}";
+
+    return (
+      <div>
+        <h1>{{capitalize crudResource.name}} List</h1>
+
+        <EnhancedTable
+          data={this.props.list}
+          columns={columns}
+          link={link}
+          onDelete={this.delete.bind(this)}
+        />
+
+        <DialogDelete
+          open={this.state.openDialogDelete}
+          onClose={this.closeDialogDelete.bind(this)}
+          onConfirm={this.confirmDialogDelete.bind(this)}
+        />
+
+        {/*
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>{{#each crudResource._entity._attrs}}
+              <TableCell align="right">{{capitalize name}}</TableCell>{{/each}}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {this.props.list.map(row => (
+              <TableRow key={row._id}>
+                <TableCell component="th" scope="row">
+                  <Link to={"{{linkUrl}}" + row._id} key={row._id}>
+                    {row._id}
+                  </Link>
+                </TableCell>{{#each crudResource._entity._attrs}}
+                <TableCell align="right">{ row.{{name}} }</TableCell>{{/each}}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        */}
+
+        <div className="footer-card">
+          <Link to="{{linkUrl}}new">
+            <Button variant="contained" color="primary">
+              Add
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+}
+
+// Store actions
+const mapDispatchToProps = function(dispatch) {
+  return { {{#eachResource module._services}}{{#notEqual name 'User'}}
+    actions{{capitalize name}}: bindActionCreators({{capitalize name}}Actions, dispatch),{{/notEqual}}{{/eachResource}}
+  };
+};
+
+// Validate types
+{{capitalize crudResource.name}}List.propTypes = { {{#eachResource module._services}}{{#notEqual name 'User'}}
+  actions{{capitalize name}}: PropTypes.object.isRequired,{{/notEqual}}{{/eachResource}}
+};
+
+// Get props from state
+function mapStateToProps(state, ownProps) {
+  return {
+    list: state.{{capitalize crudResource.name}}ListReducer.list{{capitalize crudResource.name}}
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)({{capitalize crudResource.name}}List);

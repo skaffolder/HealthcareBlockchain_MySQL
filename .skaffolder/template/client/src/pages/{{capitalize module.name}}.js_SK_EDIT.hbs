@@ -1,0 +1,293 @@
+// Dependencies
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import Utils from "../utils/utils";
+
+// Redux
+import PropTypes from "prop-types";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+
+// Material UI{{#or (findInArray crudResource._entity._attrs "type" "String") (findInArray crudResource._entity._attrs "type" "Number")}}
+import TextField from "@material-ui/core/TextField";{{/or}}
+import Button from "@material-ui/core/Button";{{#findInArray crudResource._entity._attrs "type" "Date"}}
+import { DateTimePicker } from "material-ui-pickers";{{/findInArray}}{{#or (hasInArray crudResource._entity._attrs "_enum") (hasRelation1m crudResource) (hasRelationmm crudResource) }}
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import InputLabel from "@material-ui/core/InputLabel";
+import FormControl from "@material-ui/core/FormControl";{{/or}}{{#findInArray crudResource._entity._attrs "type" "Boolean"}}
+import Switch from "@material-ui/core/Switch";
+import FormControlLabel from "@material-ui/core/FormControlLabel";{{/findInArray}}{{#hasRelationmm crudResource}}
+import Chip from "@material-ui/core/Chip";
+import Input from "@material-ui/core/Input";{{/hasRelationmm}}
+
+// Custom Actions
+
+
+// START IMPORT ACTIONS
+// END IMPORT ACTIONS
+
+/** APIs
+**/
+
+class {{capitalize crudResource.name}}Edit extends Component {
+  // Init {{lowercase crudResource.name}}
+  constructor(props) {
+    super(props);
+    this.state = {
+      {{lowercase crudResource.name}}: {}
+    };
+  }
+
+  // Load data on start
+  componentDidMount() {
+    if (this.props.match.params.id !== "new") {
+      this.props.actions{{capitalize crudResource.name}}.load{{capitalize crudResource.name}}(this.props.match.params.id);{{#each crudResource._relations}}{{#notEqual _ent1._id ../crudResource._entity._id}}
+      this.props.actions{{capitalize _ent1.name}}.findBy{{name}}(this.props.match.params.id);{{/notEqual}}{{/each}}
+    }
+    {{#each crudResource._relations}}{{#equal _ent1._id ../crudResource._entity._id}}
+    this.props.actions{{capitalize _ent2.name}}.load{{capitalize _ent2.name}}List();{{/equal}}{{/each}}
+  }
+
+  // Insert props {{lowercase crudResource.name}} in state
+  componentWillReceiveProps(props) {
+    this.setState(...this.state, {
+      {{lowercase crudResource.name}}: props.{{lowercase crudResource.name}}
+    });
+  }
+
+  // Save data
+  save(event) {
+    event.preventDefault();
+    if (this.state.{{lowercase crudResource.name}}._id) {
+      this.props.actions{{capitalize crudResource.name}}.save{{capitalize crudResource.name}}(this.state.{{lowercase crudResource.name}}).then(data => {
+        this.props.history.push("{{linkUrl}}");
+      });
+    } else {
+      this.props.actions{{capitalize crudResource.name}}.create{{capitalize crudResource.name}}(this.state.{{lowercase crudResource.name}}).then(data => {
+        this.props.history.push("{{linkUrl}}");
+      });
+    }
+  }
+
+  // Show content
+  render() {
+    return (
+      <div>
+        <h1>{{capitalize crudResource.name}} Edit</h1>
+        <form className="myForm" onSubmit={this.save.bind(this)}>
+
+          {{#each crudResource._entity._attrs}}
+          {{#notEmpty _enum}}
+          <FormControl fullWidth{{#notEmpty required}} required
+              {...(!this.state.{{lowercase ../crudResource.name}}.{{name}} && !this.state.{{lowercase ../crudResource.name}}.{{name}}
+                ? { error: true }
+                : {})}{{/notEmpty}}>
+            <InputLabel shrink htmlFor="{{name}}">
+              {{capitalize name}}
+            </InputLabel>
+            <Select
+              value={this.state.{{lowercase ../crudResource.name}}.{{name}} || ""}
+              onChange={Utils.handleChangeSelect.bind(this, "{{lowercase ../crudResource.name}}")}
+              inputProps=\{{
+                id: "{{name}}",
+                name: "{{name}}"
+              }}
+              fullWidth
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              {{#each _enum}}
+              <MenuItem value={"{{name}}"}>{{name}}</MenuItem>
+              {{/each}}
+            </Select>
+          </FormControl>
+          {{/notEmpty}}
+          {{#isEmptyNull _enum}}
+          {{#equal type 'Date'}}
+          <DateTimePicker
+            id="{{name}}"
+            label="{{capitalize name}}"
+            className="mt-20 mb-20"
+            ampm={false}
+            value={
+              this.state.{{lowercase ../crudResource.name}}.{{name}}
+                ? new Date(this.state.{{lowercase ../crudResource.name}}.{{name}})
+                : null
+            }
+            onChange={Utils.handleChangeDate.bind(this, "{{lowercase ../crudResource.name}}", "{{name}}")}
+            fullWidth
+            autoOk
+            disableFuture{{#notEmpty required}}
+            required
+            {...(!this.state.{{lowercase ../crudResource.name}}.{{name}} && this.state.{{lowercase ../crudResource.name}}.{{name}} === ""
+              ? { error: true }
+              : {})}{{/notEmpty}}
+          />
+          {{/equal}}
+          {{#equal type 'Boolean'}}
+          <FormControlLabel
+            control={
+              <Switch
+                id="{{name}}"
+                checked={this.state.{{lowercase ../crudResource.name}}.{{name}} || false}
+                onChange={Utils.handleChangeCheck.bind(this, "{{lowercase ../crudResource.name}}", "{{name}}")}
+                color="primary"{{#notEmpty required}}
+                required
+                {...(!this.state.{{lowercase ../crudResource.name}}.{{name}} && this.state.{{lowercase ../crudResource.name}}.{{name}} === ""
+                  ? { error: true }
+                  : {})}{{/notEmpty}}
+              />
+            }
+            label="{{name}}"
+            className="mt-20"
+          />
+          {{/equal}}
+          {{#notEqual type 'Boolean'}}{{#notEqual type 'Date'}}
+          <TextField
+            id="{{name}}"
+            label="{{capitalize name}}"
+            value={this.state.{{lowercase ../crudResource.name}}.{{name}} || ""}
+            onChange={Utils.handleChange.bind(this, "{{lowercase ../crudResource.name}}")}{{#equal type 'Number'}}
+            type="number"{{/equal}}{{#equal type 'Integer'}}
+            type="number"{{/equal}}{{#equal type 'Integer'}}
+            type="decimal"{{/equal}}
+            margin="normal"
+            fullWidth{{#notEmpty required}}
+            required
+            {...(!this.state.{{lowercase ../crudResource.name}}.{{name}} && this.state.{{lowercase ../crudResource.name}}.{{name}} === ""
+              ? { error: true }
+              : {})}{{/notEmpty}}
+          />
+          {{/notEqual}}{{/notEqual}}
+          {{/isEmptyNull}}
+          {{/each}}
+          {{#notEmpty crudResource._relations}}
+          {/* RELATIONS */}
+          {{#checkRelation crudResource._relations crudResource._entity}}
+
+          <h2 className="mb-20">Relations</h2>
+          {{/checkRelation}}{{/notEmpty}}{{#each crudResource._relations}}{{#equal _ent1._id ../crudResource._entity._id}}{{#equal type 'm:m'}}
+          {/* Relation m:m {{name}} with {{_ent2.name}} */}
+          
+          <FormControl fullWidth className="mb-20">
+            <InputLabel htmlFor="{{name}}">{{capitalize name}}</InputLabel>
+            <Select
+              multiple
+              value={this.state.{{lowercase ../crudResource.name}}.{{name}} || []}
+              onChange={Utils.handleChangeSelect.bind(this, "{{lowercase ../crudResource.name}}")}
+              input={<Input id="{{name}}" name="{{name}}" />}
+              renderValue={selected => (
+                <div>
+                  {selected.map(value => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </div>
+              )}
+            >
+              {this.props.list{{capitalize _ent2.name}} && this.props.list{{capitalize _ent2.name}}.map(item => (
+                <MenuItem
+                  key={item._id}
+                  value={item._id}
+                  style=\{{
+                    fontWeight:
+                      this.state.{{lowercase ../crudResource.name}}.{{name}} &&
+                      this.state.{{lowercase ../crudResource.name}}.{{name}}.indexOf(item._id) === -1
+                        ? "regular"
+                        : "bold"
+                  }}
+                >
+                  {item._id}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {{/equal}}{{#notEqual type 'm:m'}}
+          {/* Relation 1:m {{name}} with {{_ent2.name}} */}
+          
+          <FormControl fullWidth className="mb-20"{{#notEmpty required}} required
+              {...(!this.state.{{lowercase ../crudResource.name}}.{{name}} && !this.state.{{lowercase ../crudResource.name}}.{{name}}
+                ? { error: true }
+                : {})}{{/notEmpty}}>
+            <InputLabel shrink htmlFor="{{name}}">
+              {{capitalize name}}
+            </InputLabel>
+            <Select
+              value={this.state.{{lowercase ../crudResource.name}}.{{name}} || ""}
+              onChange={Utils.handleChangeSelect.bind(this, "{{lowercase ../crudResource.name}}")}
+              inputProps=\{{
+                id: "{{name}}",
+                name: "{{name}}"
+              }}
+              fullWidth
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              {this.props.list{{capitalize _ent2.name}} && this.props.list{{capitalize _ent2.name}}.map(row => (
+                <MenuItem value={row._id} key={row._id}>
+                  {row._id}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          {{/notEqual}}{{/equal}}{{/each}}{{#notEmpty crudResource._relations}}{{#checkExternalRelation crudResource._relations crudResource._entity}}
+          {/* EXTERNAL RELATIONS */}
+          {{/checkExternalRelation}}{{/notEmpty}}{{#each crudResource._relations}}{{#notEqual _ent1._id ../crudResource._entity._id}}
+          {/* External relation with {{_ent1.name}} */}
+          
+          <h3>{{capitalize _ent1.name}}</h3>
+          {(!this.props.list{{capitalize _ent1.name}} || this.props.list{{capitalize _ent1.name}}.length === 0) && 
+            <div>No {{capitalize _ent1.name}} associated</div>
+          }
+          {this.props.list{{capitalize _ent1.name}} &&
+            this.props.list{{capitalize _ent1.name}}.map((item, i) => {
+              return (
+                <Link to={"/{{lowercase _ent1.name}}s/" + item._id} key={item._id}>
+                  {item._id}
+                </Link>
+              );
+            })}
+
+          {{/notEqual}}{{/each}}
+          {/* Footer */}
+          <div className="footer-card">
+            <Link to="{{linkUrl}}">Back to list</Link>
+
+            <Button type="submit" variant="contained" color="primary">
+              Save
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+}
+
+// Store actions
+const mapDispatchToProps = function(dispatch) {
+  return { {{#eachResource module._services}}{{#notEqual name 'User'}}
+    actions{{capitalize name}}: bindActionCreators({{capitalize name}}Actions, dispatch),{{/notEqual}}{{/eachResource}}
+  };
+};
+
+// Validate types
+{{capitalize crudResource.name}}Edit.propTypes = { {{#eachResource module._services}}{{#notEqual name 'User'}}
+  actions{{capitalize name}}: PropTypes.object.isRequired,{{/notEqual}}{{/eachResource}}
+};
+
+// Get props from state
+function mapStateToProps(state, ownProps) {
+  return {
+    {{lowercase crudResource.name}}: state.{{capitalize crudResource.name}}EditReducer.{{lowercase crudResource.name}}{{#each crudResource._relations}}{{#equal _ent1._id ../crudResource._entity._id}},
+    list{{capitalize _ent2.name}}: state.{{capitalize ../crudResource.name}}EditReducer.list{{capitalize _ent2.name}}{{/equal}}{{/each}}{{#each crudResource._relations}}{{#notEqual _ent1._id ../crudResource._entity._id}},
+    list{{capitalize _ent1.name}}: state.{{capitalize ../crudResource.name}}EditReducer.list{{capitalize _ent1.name}}{{/notEqual}}{{/each}}
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)({{capitalize crudResource.name}}Edit);

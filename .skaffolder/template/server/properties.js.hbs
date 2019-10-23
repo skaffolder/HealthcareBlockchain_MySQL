@@ -1,0 +1,46 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "_partials": [
+        {
+            "template": "{{#each resources}}{{#each _resources}}{{#notNull _entity}}      {{_entity.name}}: {\n        factomized: \"{{#each _entity._relations}}{{#equal name ../_entity.extra.factomize}}{{_ent2.name}}{{/equal}}{{/each}}\",{{#equal _entity.extra.identity true}}\n        has_identity: true{{/equal}}\n      },\n{{/notNull}}{{/each}}{{/each}}\n     ",
+            "tagFrom": "// Start Factom model properties",
+            "tagTo": "// End Factom model properties",
+            "name": "Factom Partial"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+module.exports = {
+  {{#each dbs}}
+  {{name}}: {
+    name: "{{lowercase name}}",
+    user: "postgres",
+    password: null,
+    host: process.env.DB_HOST || "127.0.0.1",
+    port: 5432,
+    dialect: "postgres"
+  },
+
+  {{/each}}
+
+  // Factom properties
+  factom: {
+    config: {
+      baseUrl: "https://ephemeral.api.factom.com/v1",
+      accessToken: {
+        appId: "myAppId",
+        appKey: "myAppKey"
+      }
+    },
+    model: {
+      // Start Factom model properties
+      // End Factom model properties
+    }
+  },
+
+  publicPath: "../client/dist",
+  port: 3000,
+  tokenSecret: "Insert Your Secret Token",
+  api: "/api"
+};

@@ -1,0 +1,46 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "oneTime",
+    "overwrite": true,
+    "_partials": [
+        {
+            "name": "Import reducers",
+            "tagFrom": "// START IMPORT REDUCERS",
+            "tagTo": "// END IMPORT REDUCERS",
+            "template": "{{#each modules}}import {{capitalize name}}Reducer from \"./{{capitalize name}}Reducer\";\n{{/each}}"
+        },
+        {
+            "name": "Combine reducers",
+            "tagFrom": "// START COMBINE REDUCERS",
+            "tagTo": "// END COMBINE REDUCERS",
+            "template": "{{#each modules}}\t{{capitalize name}}Reducer,\r\n{{/each}}\t\t"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+import { combineReducers } from "redux";
+
+// START IMPORT REDUCERS
+// END IMPORT REDUCERS
+
+
+// CUSTOM REDUCERS
+import LoginReducer from "./LoginReducer";
+import ProfileReducer from "./ProfileReducer";
+import UserEditReducer from "./UserEditReducer";
+import UserListReducer from "./UserListReducer";
+
+const rootReducer = combineReducers({
+  
+  // INSERT HERE YOUR CUSTOM REDUCERS
+  LoginReducer,
+  ProfileReducer,
+  UserEditReducer,
+  UserListReducer,
+
+  // START COMBINE REDUCERS
+  // END COMBINE REDUCERS
+
+});
+
+export default rootReducer;

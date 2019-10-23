@@ -1,0 +1,214 @@
+**** PROPERTIES SKAFFOLDER ****
+{
+    "forEachObj": "db",
+    "overwrite": false,
+    "_partials": [
+        {
+            "template": "      *\n      * The content of this section will be overwritten on each documentation, \n      * please insert your customization at the top or at the end of the file.\n      * ------------------------------------\n      */\n\n{{#each db._resources}}{{#notNull _entity}}\n\n    /**\n      * ------------------------------------\n      * {{_entity.name}}\n      * ------------------------------------\n      */\n    class {{_entity.name}} extends Sequelize.Model{}\n    {{_entity.name}}.init({\n        _id: { \n          type: Sequelize.INTEGER,\n        primaryKey: true,\n        autoIncrement: true\n      },\n      {{#each _entity._attrs}}{{#notEqual name 'roles'}}\n      {{name}}: {{#equal ../name 'User'}}{{/equal}}{\n          type: {{toSequelizeType type}}{{#required}}, \n        allowNull: false{{/required}}{{#unique}},\n        unique : true, {{/unique}}\n      }{{#equal ../name 'User'}}{{/equal}},\n      {{/notEqual}}{{/each}}\n      // RELATIONS\n      {{#each _entity._relations}}\n        {{#equal _ent1.name ../_entity.name}}{{#equal type '1:m'}}\n      {{name}}:  {\n          type: Sequelize.INTEGER{{#required}}, \n        allowNull: false{{/required}},\n        references: {\n            model: \"{{_ent2.name}}\",\n          key: '_id',\n        },\n      }{{/equal}}{{/equal}}\n      {{/each}}\n      \n      \n      // EXTERNAL RELATIONS\n      /*\n      {{#each _entity._relations}}{{#notEqual _ent1.name ../_entity.name}}{{name}}: {\n          type: Sequelize.INTEGER{{#required}}, \n        allowNull: false{{/required}},\n        references: {\n            model: {{_ent1.name}},\n          key: '_id',\n        }\n      },\n      {{/notEqual}}{{/each}}*/\n\n      // FACTOM BLOCKCHAIN\n      {{#equal _entity.extra.identity true}}\n      identity: {\n        type: Sequelize.INTEGER,\n        references: {\n          model: \"Identity\",\n          key: \"_id\"\n        }\n      }\n      {{/equal}}\n    },\n      { sequelize, tableName: \"{{lowercase _entity.name}}\", timestamps: false }\n    );\n\n{{/notNull}}{{/each}}\n    /**\n      * ------------------------------------\n      * Relations many to many\n      * ------------------------------------\n      */\n{{#each db._resources}}{{#notNull _entity}}\n    {{#each _entity._relations}}{{#equal _ent1.name ../_entity.name}}{{#equal type 'm:m'}}\n    {{../_entity.name}}.belongsToMany({{_ent2.name}}, {\n          through: \"{{_ent1.name}}_{{name}}\",\n        as: \"{{name}}\",\n        foreignKey: \"id_{{_ent1.name}}\",\n        otherKey: \"id_{{_ent2.name}}\",\n        timestamps: false\n    });\n{{/equal}}{{/equal}}{{/each}}{{/notNull}}{{/each}}\n  /**\n   * ------------------------------------\n  ",
+            "tagFrom": "* Start define generated schema",
+            "tagTo": "* End define generated schema",
+            "name": "Partial Import"
+        }
+    ]
+}
+**** END PROPERTIES SKAFFOLDER ****
+// Import Sequelize
+import Sequelize from "sequelize";
+import Database from "../classes/Database_{{capitalize db.name}}";
+
+export default init => {
+  let sequelize = Database.getConnection();
+
+
+    /**
+      * ------------------------------------
+      * Start define generated schema
+      * ------------------------------------
+      */
+
+    /**
+      * ------------------------------------
+      * End define generated schema
+      * ------------------------------------
+      */
+
+      /**
+        * ------------------------------------
+        * Factom blockchain entities
+        * ------------------------------------
+        */
+
+      /**
+      * ------------------------------------
+      * Chain
+      * ------------------------------------
+      */
+      class Chain extends Sequelize.Model {}
+      Chain.init(
+        {
+          _id: {
+            type: Sequelize.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+
+          chain_id: {
+            type: Sequelize.STRING,
+            allowNull: false
+          },
+
+          entry_hash: {
+            type: Sequelize.STRING
+          },
+
+          content: {
+            type: Sequelize.STRING
+          },
+
+          //RELATIONS
+
+          identity: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: "Identity",
+              key: "_id"
+            }
+          }
+
+          //EXTERNAL RELATIONS
+          /*
+          */
+        },
+        { sequelize, tableName: "chain", timestamps: false, modelName: "Chain" }
+      );
+
+      /**
+      * ------------------------------------
+      * Entry
+      * ------------------------------------
+      */
+      class Entry extends Sequelize.Model {}
+      Entry.init(
+        {
+          _id: {
+            type: Sequelize.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+
+          entry_hash: {
+            type: Sequelize.STRING
+          },
+
+          content: {
+            type: Sequelize.STRING
+          },
+
+          //RELATIONS
+
+          chain: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: "Chain",
+              key: "_id"
+            }
+          }
+        },
+        { sequelize, tableName: "entry", timestamps: false, modelName: "Entry" }
+      );
+
+      /**
+      * ------------------------------------
+      * Identity
+      * ------------------------------------
+      */
+      class Identity extends Sequelize.Model {}
+      Identity.init(
+        {
+          _id: {
+            type: Sequelize.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+
+          chain_id: {
+            type: Sequelize.STRING,
+            allowNull: false
+          },
+
+          entry_hash: {
+            type: Sequelize.STRING,
+            allowNull: false
+          },
+
+          key_pairs: {
+            type: Sequelize.JSON
+          }
+
+          //RELATIONS
+
+          //EXTERNAL RELATIONS
+          /*
+          identity: {
+            type: Sequelize.INTEGER,
+            references: {
+              model: Doctor,
+              key: '_id',
+            }
+          },
+          */
+        },
+        {
+          sequelize,
+          tableName: "identity",
+          timestamps: false,
+          modelName: "Identity"
+        }
+      );
+
+    /**
+      * ------------------------------------
+      * Roles
+      * ------------------------------------
+      */
+    class Roles extends Sequelize.Model{}
+    Roles.init({
+      _id: { 
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
+      
+      role: {
+        type: Sequelize.STRING
+      },
+      
+      //RELATIONS
+        
+      _user:  {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "User",
+          key: '_id',
+        },
+      }
+      
+      
+      //EXTERNAL RELATIONS
+      /*
+      */
+    },
+      { sequelize, tableName: "roles", timestamps: false }
+    );
+
+    User.hasMany(Roles, {
+      foreignKey: "_user"
+    });
+
+    /**
+      * ------------------------------------
+      * Insert here your custom models
+      * ------------------------------------
+      */
+
+};
